@@ -1,5 +1,6 @@
 # LumberSnake
-Tableau VizQL Analysis in Python
+Tableau VizQL Analysis in Python.
+This is unsupported - but feel free to contribute! 
 
 HOW TO USE LUMBERSNAKE TM (v1.2)
 =========================================
