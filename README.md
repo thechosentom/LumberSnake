@@ -5,7 +5,7 @@ HOW TO USE LUMBERSNAKE TM (v1.2)
 =========================================
 
 Step 1.
-Place into a folder.
+Place into a folder of your choice.
 
 Step 2.
 In that same folder, create a folder called "Log Dump". 
