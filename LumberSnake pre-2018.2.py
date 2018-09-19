@@ -1,5 +1,5 @@
 #########################################################################################################
-# LumberSnake v2018.1.0
+# LumberSnake pre-2018.2 (V1)
 # This script extracts vizql logs from a Tableau Server ziplogs file and processes them for analysis.
 # NOTE: Code only works with logs from Tableau Server 2018.1.0 and under.
 # NOTE: CPU & Memory results are unavailable for this version.
