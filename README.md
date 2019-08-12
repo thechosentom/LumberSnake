@@ -6,9 +6,9 @@
 
 HOW TO USE LUMBERSNAKE TM
 =========================================
-Supported versions of Tableau: TSM versions ONLY. Please upgrade to 2018.2+
-Windows: All
-Linux: TBC (may need directory changes in the script)
+	- Supported versions of Tableau: TSM versions ONLY. Please upgrade to 2018.2+
+	- Windows: All
+	- Linux: TBC (may need directory changes in the script)
 
 Step 1.
 Place into a folder of your choice. Ideally next to your extracted Server logs.
