@@ -1,8 +1,8 @@
 # LumberSnake
-Tableau VizQL Analysis in Python.
-This is unsupported - but feel free to contribute!
-Note, the primary Workbook is created in 2019.2.
-.exe file available here: https://tableau.egnyte.com/dl/0j13U7qEMH
+	- Tableau VizQL Analysis in Python.
+	- This is unsupported - but feel free to contribute!
+	- Note, the primary Workbook is created in 2019.2.
+	- .exe file available here: https://tableau.egnyte.com/dl/0j13U7qEMH
 
 HOW TO USE LUMBERSNAKE TM
 =========================================
