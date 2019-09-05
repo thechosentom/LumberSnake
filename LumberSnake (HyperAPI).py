@@ -64,7 +64,7 @@ def cleanFilepath(directory):
 
     if os.path.exists(hyperfile):
         print("WARNING - an existing LumberSnake.hyper file exists.")
-        check = input("How to proceed? Press 'Y' to confirm | Press 'A' to append | Any other key will exit. >> ")
+        check = input("How would you like to proceed?\n >> Press 'Y' to delete. \n >> Press 'A' to append \n >> Press any other key to exit.\n >> ")
 
         if check.lower() == "y":
             try:
@@ -170,7 +170,9 @@ def HyperSnake(vizqlfile):
             FROM raw_log
             WHERE 
             log_entry IS NOT NULL AND
-            log_entry->>'k' <> 'qp-batch-summary';  
+            log_entry->>'k' <> 'qp-batch-summary' OR
+            log_entry->>'k' <> 'excp'
+            ;  
             
             COMMIT;
             
@@ -209,7 +211,26 @@ def HyperSnake(vizqlfile):
                 FROM raw_log
                 CROSS JOIN json_array_elements(log_entry->'v'->'jobs') as e1(job_entry)
                 CROSS JOIN json_array_elements(job_entry->'queries') as e2(queries_entry)
+                WHERE 
+                log_entry->>'k' = 'qp-batch-summary' 
                 );      
+    
+                CREATE TABLE IF NOT EXISTS excplog AS (
+                    SELECT
+                       (log_entry->>'ts')::TIMESTAMP AS ts,
+                       (log_entry->>'pid') AS pid,
+                       (log_entry->>'tid') AS tid,
+                       (log_entry->>'req') AS req,
+                       (log_entry->>'sev') AS sev,
+                       (log_entry->>'sess') AS sess,
+                       (log_entry->>'site') AS site,
+                       (log_entry->>'user') AS username,
+                       (log_entry->'v'->>'excp-msg') AS excp_msg,
+                       (log_entry->'v'->>'excp-type') AS excp_type,
+                       (log_entry->'v'->>'msg') AS msg
+                    FROM raw_log
+                    WHERE log_entry->>'k' = 'excp'
+                );
     
                COMMIT;
                ''')
