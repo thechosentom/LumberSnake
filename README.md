@@ -11,10 +11,11 @@ HOW TO USE LUMBERSNAKE TM
 	- Linux: TBC (may need directory changes in the script)
 
 Step 1.
-Place into a folder of your choice. Ideally next to your extracted Server logs.
+Place into a folder of your choice.
 
 Step 2.
-Run the LumberSnake .exe / .py and select your extracted log files. 
+Run the LumberSnake .exe / .py and select either your log file extract OR the directory of your log files. 
+Note: you can append to an existing Hyper file now. Only do this if you know you have brand new data.
 
 Step 3.
 Connect the workbook to the output files in the repository.
@@ -24,5 +25,8 @@ NOTE:
 - The new version uses the yet-to-be released Hyper API.
 
 Release notes:
-- One version to rule them all.
-- Updated swanky workbook.
+- Should be more stable, computes file by file so size shouldn't matter.
+- Relies almost entirely on the Hyper API now. The Hyper API is awesome.
+- Will let you append to an existing LumberSnake.hyper (note, make sure the files are unique from previous runs!).
+- Will let you run it against a folder if logs are already extracted / if you want to run it directly on the Server.
+- Regression >> Purposely does not populate the "excp" table yet. I'll do that later.
