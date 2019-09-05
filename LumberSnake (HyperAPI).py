@@ -4,7 +4,7 @@ import shutil
 import zipfile
 import time
 from tkinter import Tk
-from tkinter.filedialog import askopenfilename
+from tkinter.filedialog import askopenfilename, askdirectory
 from tableauhyperapi import HyperProcess, Telemetry, \
     Connection, CreateMode, escape_string_literal
 from pathlib import Path
@@ -74,14 +74,13 @@ def cleanFilepath(directory):
                 pass
             print("Deleted continuing...")
 
+        elif check.lower() == "a":
+            print("Will append to file. Warning, data may be duplicated.")
+            pass
         else:
-            if check.lower() == "a":
-                print("Will append to file. Warning, data may be duplicated.")
-                pass
-            else:
-                print("Exiting...")
-                time.sleep(5)
-                quit()
+            print("Exiting...")
+            time.sleep(5)
+            quit()
 
 
 ##############################
@@ -255,21 +254,43 @@ def HTTPtoHyper(accessfile):
 
 start = time.time()
 
-hyperfile = "LumberSnake.hyper"
-directory = '.\\Log Dump\\'
+
 
 if __name__ == '__main__':
+
+    hyperfile = "LumberSnake.hyper"
+    directory = '.\\Log Dump\\'
 
     print("Cleaning current directories and files.")
     cleanFilepath(directory)
 
-    print("Select your zip logs.")
-    Tk().withdraw()
-    ZipLogsFile = askopenfilename(initialdir=".\\", title="Select zip logs")
+    # Select if you want to extract from zip file or point at directory.
+    
+    print(">>>> DO YOU WANT TO EXTRACT FROM ZIP - OR DIRECTLY FROM A FOLDER? <<<<")
+    
+    program = input("Select from the following options: \n >> Z for zip file. \n >> F for folder directory. \n >> Any other key to quit. \n >>")
 
-    ExtractLogs(directory, ZipLogsFile)
+    if program.lower() == "z":
+        print("Select your zip logs.")
+        Tk().withdraw()
+        ZipLogsFile = askopenfilename(initialdir="./", title="Select zip logs")
+        ExtractLogs(directory, ZipLogsFile)
+        print ("Logs Extracted from Zip!")
+    
+    elif program.lower() == "f":
+        print("Pick your log folder. For example: C:/ProgramData/Tableau/Tableau Server/data/tabsvc/logs/")
+        Tk().withdraw()
+        if os.path.exists('C:/ProgramData/Tableau/Tableau Server/data/'):
+            directory = askdirectory(initialdir="C:/ProgramData/Tableau/Tableau Server/data/", title="Select log folder")
+            print (directory + " selected.")
+        else:
+            directory = askdirectory(initialdir="./", title="Select log folder")
+            print(directory + " selected.")
+    else:
+        print("Exiting...")
+        time.sleep(5)
+        quit()
 
-    print ("Logs Extracted from Zip!")
 
     HyperCreate()
 
@@ -295,7 +316,8 @@ if __name__ == '__main__':
                 print (e)
                 pass
 
-    shutil.rmtree(directory)
+    if program.lower() == "z":
+        shutil.rmtree(directory)
 
     end = time.time()
     print ("Processed in " + str((end - start)/60)[:6] + "mins.")
