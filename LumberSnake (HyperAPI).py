@@ -169,9 +169,7 @@ def HyperSnake(vizqlfile):
             DELETE
             FROM raw_log
             WHERE 
-            log_entry IS NOT NULL AND
-            log_entry->>'k' <> 'qp-batch-summary' OR
-            log_entry->>'k' <> 'excp'
+            log_entry IS NULL
             ;  
             
             COMMIT;
