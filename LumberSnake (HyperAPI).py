@@ -93,15 +93,10 @@ def HyperCreate():
     print(">>> Creating Hyper File <<<")
     path_to_database = Path(hyperfile)
     with HyperProcess(telemetry=Telemetry.SEND_USAGE_DATA_TO_TABLEAU) as hyper:
-        with Connection(endpoint=hyper.endpoint,
-                        database=path_to_database,
-                        create_mode=CreateMode.CREATE_IF_NOT_EXISTS) as connection:
-            connection.execute_command(
-                command=
-                f'''
-                BEGIN;
-                
-                create table if not exists http  (
+        with Connection(endpoint=hyper.endpoint,database=path_to_database,create_mode=CreateMode.CREATE_IF_NOT_EXISTS) as connection:
+            connection.execute_command(command=f"BEGIN;")
+            connection.execute_command(command=
+                f'''create table if not exists http  (
                     serving_host             text,
                     client_host              text,
                     username                 text,
@@ -115,14 +110,13 @@ def HyperCreate():
                     content_length           text,
                     request_time_ms          text,
                     request_id               text
-                );
-                
-                create table if not exists dump_table (
+                );''')
+            connection.execute_command(command=
+                f'''create table if not exists dump_table (
                     dump text
-                );
+                );''')
                 
-                COMMIT;
-                    ''')
+            connection.execute_command(command=f"COMMIT;")
 
 ##############################
 
@@ -141,8 +135,7 @@ def HyperSnake(vizqlfile):
 
     with HyperProcess(telemetry=Telemetry.SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=path_to_database) as connection:
-
-            connection.execute_command(command=
+           connection.execute_command(command=
                 f'''
                  CREATE TABLE IF NOT EXISTS dump_table AS (
                     SELECT * from {escape_string_literal(vizqlfile)} 
@@ -152,10 +145,8 @@ def HyperSnake(vizqlfile):
                   SELECT
                     CAST(dump AS json OR NULL) AS log_entry
                       FROM dump_table
-                    );
-                    
-                COMMIT;              
-                ''')
+                    );''')
+            connection.execute_command(command=f"COMMIT;")
             
             print(">>> Logs ingested!")
 
@@ -170,11 +161,8 @@ def HyperSnake(vizqlfile):
             FROM raw_log
             WHERE 
             log_entry IS NULL
-            ;  
-            
-            COMMIT;
-            
-            ''')
+            ;''')  
+            connection.execute_command(command=f"COMMIT;")
 
             print(">>> Converting structure now...")
 
@@ -211,8 +199,9 @@ def HyperSnake(vizqlfile):
                 CROSS JOIN json_array_elements(job_entry->'queries') as e2(queries_entry)
                 WHERE 
                 log_entry->>'k' = 'qp-batch-summary' 
-                );      
-    
+                );''')
+            
+            connection.execute_command(command=f'''
                 CREATE TABLE IF NOT EXISTS excplog AS (
                     SELECT
                        (log_entry->>'ts')::TIMESTAMP AS ts,
@@ -228,22 +217,19 @@ def HyperSnake(vizqlfile):
                        (log_entry->'v'->>'msg') AS msg
                     FROM raw_log
                     WHERE log_entry->>'k' = 'excp'
-                );
-    
-               COMMIT;
-               ''')
+                );''')
+            
+            connection.execute_command(command=f"COMMIT;")
 
             print(">>> Dropping the dump table...")
 
             connection.execute_command(
-                command=
-                f'''
-                   DROP TABLE raw_log;
-                
-                   COMMIT;
-                   ''')
+                command=f"DROP TABLE raw_log;")
+            
+            connection.execute_command(f"COMMIT;")
 
     print(">>> Hyper step complete...")
+
 
 
 ##############################
