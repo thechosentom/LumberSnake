@@ -146,7 +146,6 @@ def HyperSnake(vizqlfile):
                     CAST(dump AS json OR NULL) AS log_entry
                       FROM dump_table
                     );''')
-            connection.execute_command(command=f"COMMIT;")
             
             print(">>> Logs ingested!")
 
