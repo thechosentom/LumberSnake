@@ -94,7 +94,6 @@ def HyperCreate():
     path_to_database = Path(hyperfile)
     with HyperProcess(telemetry=Telemetry.SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=path_to_database,create_mode=CreateMode.CREATE_IF_NOT_EXISTS) as connection:
-            connection.execute_command(command=f"BEGIN;")
             connection.execute_command(command=
                 f'''create table if not exists http  (
                     serving_host             text,
@@ -115,8 +114,6 @@ def HyperCreate():
                 f'''create table if not exists dump_table (
                     dump text
                 );''')
-                
-            connection.execute_command(command=f"COMMIT;")
 
 ##############################
 
@@ -139,8 +136,10 @@ def HyperSnake(vizqlfile):
                 f'''
                  CREATE TABLE IF NOT EXISTS dump_table AS (
                     SELECT * from {escape_string_literal(vizqlfile)} 
-                    (SCHEMA(dump text)));
-                
+                    (SCHEMA(dump text)));''')
+           
+            connection.execute_command(command=
+                f'''                
                 CREATE TABLE IF NOT EXISTS raw_log AS (
                   SELECT
                     CAST(dump AS json OR NULL) AS log_entry
@@ -154,14 +153,20 @@ def HyperSnake(vizqlfile):
             connection.execute_command(command=
             f'''
             TRUNCATE TABLE dump_table;
-            DROP TABLE dump_table;
+            ''')
             
+            connection.execute_command(command=
+            f'''            
+            DROP TABLE dump_table;
+            ''')
+            
+            connection.execute_command(command=
+            f''' 
             DELETE
             FROM raw_log
             WHERE 
             log_entry IS NULL
             ;''')  
-            connection.execute_command(command=f"COMMIT;")
 
             print(">>> Converting structure now...")
 
@@ -217,15 +222,11 @@ def HyperSnake(vizqlfile):
                     FROM raw_log
                     WHERE log_entry->>'k' = 'excp'
                 );''')
-            
-            connection.execute_command(command=f"COMMIT;")
 
             print(">>> Dropping the dump table...")
 
             connection.execute_command(
                 command=f"DROP TABLE raw_log;")
-            
-            connection.execute_command(f"COMMIT;")
 
     print(">>> Hyper step complete...")
 
