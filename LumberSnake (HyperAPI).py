@@ -94,7 +94,7 @@ def HyperCreate():
     path_to_database = Path(hyperfile)
     with HyperProcess(telemetry=Telemetry.SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=path_to_database,create_mode=CreateMode.CREATE_IF_NOT_EXISTS) as connection:
-            connection.execute_command(command=
+            affected_rows = connection.execute_command(command=
                 f'''create table if not exists http  (
                     serving_host             text,
                     client_host              text,
@@ -114,7 +114,7 @@ def HyperCreate():
                 f'''create table if not exists dump_table (
                     dump text
                 );''')
-
+            print(affected_rows)
 ##############################
 
 # Convert VizQL files to Hyper
@@ -132,45 +132,50 @@ def HyperSnake(vizqlfile):
 
     with HyperProcess(telemetry=Telemetry.SEND_USAGE_DATA_TO_TABLEAU) as hyper:
         with Connection(endpoint=hyper.endpoint,database=path_to_database) as connection:
-           connection.execute_command(command=
+            affected_rows = connection.execute_command(command=
                 f'''
                  CREATE TABLE IF NOT EXISTS dump_table AS (
-                    SELECT * from {escape_string_literal(vizqlfile)} 
-                    (SCHEMA(dump text)));''')
-           
-            connection.execute_command(command=
+                    SELECT * from {escape_string_literal(vizqlfile)}
+                    (SCHEMA(dump json) WITH (FORMAT JSON)));''')
+            print('>>> Ingested string literals to dump_table or tracebacks: ',affected_rows)
+
+            affected_rows = connection.execute_command(command=
                 f'''                
                 CREATE TABLE IF NOT EXISTS raw_log AS (
                   SELECT
                     CAST(dump AS json OR NULL) AS log_entry
                       FROM dump_table
                     );''')
-            
+            print('>>> Ingested raw_log lines or tracebacks: ',affected_rows)
+
             print(">>> Logs ingested!")
 
             print(">>> Cleaning Hyper...")
 
-            connection.execute_command(command=
+            affected_rows = connection.execute_command(command=
             f'''
             TRUNCATE TABLE dump_table;
             ''')
-            
-            connection.execute_command(command=
+            print('>>> Truncated rows in dump_table or tracebacks: ',affected_rows)
+
+            affected_rows = connection.execute_command(command=
             f'''            
             DROP TABLE dump_table;
             ''')
-            
-            connection.execute_command(command=
+            print('>>> Dumped rows in dump_table or tracebacks: ',affected_rows)
+
+            affected_rows = connection.execute_command(command=
             f''' 
             DELETE
             FROM raw_log
             WHERE 
             log_entry IS NULL
             ;''')  
+            print('>>> Deleted lines in raw_log or tracebacks: ',affected_rows)
 
             print(">>> Converting structure now...")
 
-            connection.execute_command(
+            affected_rows = connection.execute_command(
                 command=
                 f'''
                 CREATE TABLE IF NOT EXISTS qplog AS (
@@ -195,17 +200,19 @@ def HyperSnake(vizqlfile):
                    (job_entry->>'query-abstract') AS query_abstract,
                    (job_entry->>'query-id') AS query_id,
                    (queries_entry->>'cache-hit') AS cache_hit,
+				   (queries_entry->>'native-query-elapsed')::DOUBLE PRECISION AS native_query_elapsed,
                    (queries_entry->>'protocol-id') AS protocol_id,
                    (queries_entry->>'query-category') AS query_category,
-                   (queries_entry->>'query-compilied') AS query_compiled
+                   (queries_entry->>'query-compiled') AS query_compiled
                 FROM raw_log
                 CROSS JOIN json_array_elements(log_entry->'v'->'jobs') as e1(job_entry)
                 CROSS JOIN json_array_elements(job_entry->'queries') as e2(queries_entry)
                 WHERE 
                 log_entry->>'k' = 'qp-batch-summary' 
                 );''')
-            
-            connection.execute_command(command=f'''
+            print('>>> Converted log entries or tracebacks: ',affected_rows)
+
+            affected_rows = connection.execute_command(command=f'''
                 CREATE TABLE IF NOT EXISTS excplog AS (
                     SELECT
                        (log_entry->>'ts')::TIMESTAMP AS ts,
@@ -222,6 +229,7 @@ def HyperSnake(vizqlfile):
                     FROM raw_log
                     WHERE log_entry->>'k' = 'excp'
                 );''')
+            print('>>> Converted exceptions or tracebacks: ',affected_rows)
 
             print(">>> Dropping the dump table...")
 
