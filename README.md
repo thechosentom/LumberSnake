@@ -1,3 +1,7 @@
+*LumberSnake is currently undergoing a few fixes post-paternity leave and will be reviewed shortly!*
+
+@Ludwig Ehlert & Adrian Vogelsgesang should take great credit in getting this functional. Python script is now up to date.
+
 # LumberSnake
 	- Tableau VizQL Analysis in Python.
 	- This is unsupported - but feel free to contribute!
